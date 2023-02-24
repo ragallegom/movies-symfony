@@ -2,31 +2,37 @@
 
 namespace App\Controller;
 
-use App\Entity\Movie;
-use Doctrine\Persistence\ManagerRegistry;
+use App\Repository\MovieRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class MoviesController extends AbstractController
 {
-    private $em;
-    public function __construct(ManagerRegistry $doctrine){
-        $this->em = $doctrine;
+    private $movieRepository;
+
+    public function __construct(MovieRepository $movieRepository)
+    {
+        $this->movieRepository = $movieRepository;
     }
 
     #[Route('/movies', name: 'movies')]
     public function index(): Response
     {
-        // findAll() - SELECT * FROM movies;
-        // find() -  SELECT * FROM movies WHERE id = 5;
-        // findBy() -  SELECT * FROM movies ORDER BY id DESC;
-        // findOneBy() -  SELECT * FROM movies WHERE id = 6 AND title = 'The Dark Knight' ORDER BY id DESC;
-        // count() - SELECT COUNT() FROM movies WHERE id = 6;
+        $movies = $this->movieRepository->findAll();
 
-        $repository = $this->em->getRepository(Movie::class);
-        $movies = $repository->findAll();
+        return $this->render('movies/index.html.twig', [
+            'movies' => $movies
+        ]);
+    }
 
-        return $this->render('index.html.twig');
+    #[Route('/movies/{id}', methods:['GET'], name: 'movies')]
+    public function show($id): Response
+    {
+        $movie = $this->movieRepository->find($id);
+
+        return $this->render('movies/show.html.twig', [
+            'movie' => $movie
+        ]);
     }
 }
